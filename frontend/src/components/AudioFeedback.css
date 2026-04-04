@@ -1,0 +1,100 @@
+.audio-feedback {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.audio-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-audio {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-audio:hover:not(:disabled) {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
+.btn-audio:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-audio-active {
+  background: rgba(37, 99, 235, 0.15);
+  color: var(--primary-light);
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+.btn-speak {
+  background: rgba(22, 163, 74, 0.1);
+  color: #4ade80;
+  border-color: rgba(22, 163, 74, 0.3);
+}
+
+.btn-speak:hover:not(:disabled) {
+  background: rgba(22, 163, 74, 0.2);
+}
+
+.btn-tts-toggle {
+  font-size: 0.75rem;
+  padding: 8px 12px;
+}
+
+/* Speaking indicator with sound wave */
+.speaking-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: rgba(37, 99, 235, 0.1);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.speaking-indicator p {
+  color: var(--primary-light);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.sound-wave {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 20px;
+}
+
+.sound-wave span {
+  display: block;
+  width: 3px;
+  background: var(--primary-light);
+  border-radius: 2px;
+  animation: wave 1s ease-in-out infinite;
+}
+
+.sound-wave span:nth-child(1) { height: 8px; animation-delay: 0s; }
+.sound-wave span:nth-child(2) { height: 14px; animation-delay: 0.1s; }
+.sound-wave span:nth-child(3) { height: 20px; animation-delay: 0.2s; }
+.sound-wave span:nth-child(4) { height: 14px; animation-delay: 0.3s; }
+.sound-wave span:nth-child(5) { height: 8px; animation-delay: 0.4s; }
+
+@keyframes wave {
+  0%, 100% { transform: scaleY(0.5); }
+  50% { transform: scaleY(1); }
+}

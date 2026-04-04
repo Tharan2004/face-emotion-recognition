@@ -1,0 +1,153 @@
+.camera-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.camera-view {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #000;
+  aspect-ratio: 4/3;
+  box-shadow: var(--shadow-lg);
+  border: 2px solid var(--border);
+}
+
+.webcam-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.camera-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 32px;
+  text-align: center;
+  color: var(--text-secondary);
+  gap: 12px;
+}
+
+.camera-error .error-icon {
+  font-size: 3rem;
+  color: var(--danger);
+}
+
+.camera-error h3 {
+  color: var(--text-primary);
+  font-size: 1.2rem;
+}
+
+.camera-error p {
+  max-width: 400px;
+  line-height: 1.6;
+}
+
+/* Scanning animation overlay */
+.scanning-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.scan-border {
+  position: absolute;
+  inset: 20px;
+  border: 2px solid rgba(37, 99, 235, 0.5);
+  border-radius: 8px;
+  animation: scanPulse 2s ease-in-out infinite;
+}
+
+@keyframes scanPulse {
+  0%, 100% {
+    border-color: rgba(37, 99, 235, 0.3);
+    box-shadow: inset 0 0 20px rgba(37, 99, 235, 0.05);
+  }
+  50% {
+    border-color: rgba(37, 99, 235, 0.7);
+    box-shadow: inset 0 0 30px rgba(37, 99, 235, 0.1);
+  }
+}
+
+/* Controls */
+.camera-controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.3px;
+}
+
+.btn-start {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-start:hover:not(:disabled) {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+.btn-stop {
+  background: var(--danger);
+  color: white;
+}
+
+.btn-stop:hover:not(:disabled) {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--bg-card-hover);
+}
+
+.btn-control:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.camera-hint {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .camera-view {
+    border-radius: var(--radius-sm);
+  }
+
+  .btn-control {
+    padding: 12px 20px;
+    font-size: 0.9rem;
+  }
+}
