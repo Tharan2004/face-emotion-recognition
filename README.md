@@ -13,15 +13,28 @@ Real-time facial emotion detection system with audio feedback, designed to help 
 
 ## Quick Start
 
-### 1. Setup Backend
+### Prerequisites
+- Python 3.8+
+- Node.js 16+
+- Webcam
+
+### 1. Clone & Setup Backend
 
 ```bash
-cd backend
+# Clone the repository
+git clone https://github.com/Tharan2004/face-emotion-recognition.git
+cd face-emotion-recognition/backend
+
+# Install Python dependencies
 pip install -r requirements.txt
+
+# Download the emotion detection model (one-time setup, ~330MB)
 python save_model_locally.py
 ```
 
-### 2. Start Backend
+This will download the model from Hugging Face and save it locally in `backend/model/final_stage4_emotion_model/`
+
+### 2. Start Backend Server
 
 ```bash
 python run.py
@@ -30,6 +43,8 @@ python run.py
 Backend runs on: http://localhost:8000
 
 ### 3. Setup & Start Frontend
+
+Open a new terminal:
 
 ```bash
 cd frontend
