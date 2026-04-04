@@ -12,15 +12,17 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Path to your trained model file
 # Place your model in the backend/model/ folder and update the filename
-# Supports: .onnx (recommended for Python 3.14+), .keras, or .h5
-MODEL_PATH = os.path.join(BASE_DIR, "model", "emotion_model.onnx")
+# Supports: .onnx, .keras, or .h5
+MODEL_PATH = os.path.join(BASE_DIR, "model", "final_stage4_highacc (2).keras")
 
 # Input image size expected by your model (height, width)
 # Change this to match what your model was trained on
-IMAGE_SIZE = (48, 48)
+# Note: The model architecture uses 224x224, but error logs show 225x225
+# If you see shape mismatch errors, try adjusting this
+IMAGE_SIZE = (224, 224)
 
 # Whether model expects grayscale (1 channel) or RGB (3 channels)
-GRAYSCALE = True
+GRAYSCALE = False
 
 # Emotion labels - must match your model's output order
 EMOTION_LABELS = [

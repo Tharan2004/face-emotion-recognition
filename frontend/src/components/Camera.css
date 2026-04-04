@@ -3,6 +3,7 @@
   flex-direction: column;
   align-items: center;
   gap: 16px;
+  width: 100%;
 }
 
 .camera-view {
@@ -15,6 +16,12 @@
   aspect-ratio: 4/3;
   box-shadow: var(--shadow-lg);
   border: 2px solid var(--border);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.camera-view:hover {
+  transform: scale(1.01);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
 .webcam-feed {
@@ -30,25 +37,33 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  padding: 32px;
+  padding: clamp(20px, 5vw, 40px);
   text-align: center;
   color: var(--text-secondary);
   gap: 12px;
 }
 
 .camera-error .error-icon {
-  font-size: 3rem;
+  font-size: clamp(2.5rem, 8vw, 3.5rem);
   color: var(--danger);
+  animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
 }
 
 .camera-error h3 {
   color: var(--text-primary);
-  font-size: 1.2rem;
+  font-size: clamp(1rem, 3vw, 1.3rem);
 }
 
 .camera-error p {
   max-width: 400px;
   line-height: 1.6;
+  font-size: clamp(0.85rem, 2vw, 1rem);
 }
 
 /* Scanning animation overlay */
@@ -61,7 +76,7 @@
 .scan-border {
   position: absolute;
   inset: 20px;
-  border: 2px solid rgba(37, 99, 235, 0.5);
+  border: 3px solid rgba(37, 99, 235, 0.5);
   border-radius: 8px;
   animation: scanPulse 2s ease-in-out infinite;
 }
@@ -72,8 +87,8 @@
     box-shadow: inset 0 0 20px rgba(37, 99, 235, 0.05);
   }
   50% {
-    border-color: rgba(37, 99, 235, 0.7);
-    box-shadow: inset 0 0 30px rgba(37, 99, 235, 0.1);
+    border-color: rgba(37, 99, 235, 0.8);
+    box-shadow: inset 0 0 40px rgba(37, 99, 235, 0.15);
   }
 }
 
@@ -83,41 +98,54 @@
   gap: 12px;
   flex-wrap: wrap;
   justify-content: center;
+  width: 100%;
 }
 
 .btn-control {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 14px 28px;
+  padding: clamp(12px, 2.5vw, 16px) clamp(20px, 4vw, 32px);
   border: none;
   border-radius: var(--radius-sm);
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 2vw, 1.05rem);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   letter-spacing: 0.3px;
+  min-width: 140px;
+  white-space: nowrap;
 }
 
 .btn-start {
-  background: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
   color: white;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 .btn-start:hover:not(:disabled) {
-  background: var(--primary-dark);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+}
+
+.btn-start:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .btn-stop {
-  background: var(--danger);
+  background: linear-gradient(135deg, var(--danger) 0%, #b91c1c 100%);
   color: white;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }
 
 .btn-stop:hover:not(:disabled) {
-  background: #b91c1c;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.5);
+}
+
+.btn-stop:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .btn-secondary {
@@ -128,26 +156,46 @@
 
 .btn-secondary:hover:not(:disabled) {
   background: var(--bg-card-hover);
+  border-color: var(--primary);
 }
 
 .btn-control:disabled {
-  opacity: 0.4;
+  opacity: 0.5;
   cursor: not-allowed;
+  transform: none !important;
 }
 
 .camera-hint {
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: clamp(0.85rem, 2vw, 0.95rem);
   text-align: center;
+  padding: 0 16px;
 }
 
-@media (max-width: 600px) {
+/* Mobile optimizations */
+@media (max-width: 768px) {
   .camera-view {
     border-radius: var(--radius-sm);
+    max-width: 100%;
+  }
+
+  .camera-controls {
+    width: 100%;
   }
 
   .btn-control {
-    padding: 12px 20px;
-    font-size: 0.9rem;
+    flex: 1;
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 480px) {
+  .scan-border {
+    inset: 10px;
+  }
+
+  .btn-control {
+    width: 100%;
+    min-width: unset;
   }
 }

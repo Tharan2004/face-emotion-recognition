@@ -3,42 +3,62 @@ import Webcam from "react-webcam";
 import { FaCamera, FaStop, FaVideoSlash } from "react-icons/fa";
 import "./Camera.css";
 
-const Camera = ({ isActive, onToggle, onCapture, captureInterval = 2500 }) => {
+const Camera = ({ isActive, onToggle, onCapture, captureInterval = 50000 }) => {
   const webcamRef = useRef(null);
   const intervalRef = useRef(null);
   const [hasPermission, setHasPermission] = useState(null);
   const [facingMode, setFacingMode] = useState("user");
+  const onCaptureRef = useRef(onCapture);
 
-  // Capture frame from webcam
-  const captureFrame = useCallback(() => {
-    if (webcamRef.current) {
-      const imageSrc = webcamRef.current.getScreenshot();
-      if (imageSrc) {
-        onCapture(imageSrc);
-      }
-    }
+  // Keep onCapture ref updated
+  useEffect(() => {
+    onCaptureRef.current = onCapture;
   }, [onCapture]);
 
   // Start/stop automatic capture interval
   useEffect(() => {
     if (isActive) {
+      console.log('▶️ Starting detection with interval:', captureInterval, 'ms');
+      
       // Capture immediately on start
-      captureFrame();
+      if (webcamRef.current) {
+        const imageSrc = webcamRef.current.getScreenshot();
+        if (imageSrc) {
+          console.log('📸 Initial capture at:', new Date().toLocaleTimeString());
+          onCaptureRef.current(imageSrc);
+        }
+      }
+      
       // Then capture at regular intervals
-      intervalRef.current = setInterval(captureFrame, captureInterval);
+      intervalRef.current = setInterval(() => {
+        console.log('⏰ Interval triggered at:', new Date().toLocaleTimeString());
+        if (webcamRef.current) {
+          const imageSrc = webcamRef.current.getScreenshot();
+          if (imageSrc) {
+            console.log('📸 Capturing frame at:', new Date().toLocaleTimeString());
+            onCaptureRef.current(imageSrc);
+          }
+        }
+      }, captureInterval);
+      
+      console.log('✅ Interval set with ID:', intervalRef.current);
     } else {
+      console.log('⏸️ Stopping detection');
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
+        console.log('🛑 Interval cleared');
         intervalRef.current = null;
       }
     }
 
     return () => {
       if (intervalRef.current) {
+        console.log('🧹 Cleanup: clearing interval');
         clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
-  }, [isActive, captureFrame, captureInterval]);
+  }, [isActive, captureInterval]); // Only depend on isActive and captureInterval
 
   const handleUserMedia = () => {
     setHasPermission(true);

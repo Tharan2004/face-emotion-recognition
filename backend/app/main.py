@@ -6,7 +6,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers.emotion import router as emotion_router
-from app.services.emotion_detector import detector
+from app.services.transformers_detector import transformers_detector
 
 # Configure logging
 logging.basicConfig(
@@ -42,11 +42,10 @@ app.include_router(emotion_router)
 async def startup_event():
     logger.info("=" * 60)
     logger.info("Face Emotion Recognition API Starting...")
-    logger.info(f"Model loaded: {detector.is_model_loaded}")
-    if not detector.is_model_loaded:
+    logger.info(f"Model loaded: {transformers_detector.is_model_loaded}")
+    if not transformers_detector.is_model_loaded:
         logger.warning(
-            "⚠ No model found! Running in DEMO mode. "
-            "Place your .keras model in backend/model/ folder."
+            "⚠ Model not loaded! Run 'python download_hf_model.py' first."
         )
     logger.info("=" * 60)
 
@@ -56,6 +55,6 @@ async def root():
     return {
         "app": "Face Emotion Recognition for Visually Impaired",
         "status": "running",
-        "model_loaded": detector.is_model_loaded,
+        "model_loaded": transformers_detector.is_model_loaded,
         "docs": "/docs",
     }

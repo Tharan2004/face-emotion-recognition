@@ -3,3 +3,12 @@ frontend/node_modules/
 .venv/
 __pycache__/
 *.pyc
+*.log
+.env
+audio_cache/*.mp3
+!audio_cache/.gitkeep
+
+# Model files (too large for git)
+backend/model/final_stage4_emotion_model/*.safetensors
+backend/model/final_stage4_emotion_model/*.keras
+backend/model/final_stage4_emotion_model/model.safetensors
