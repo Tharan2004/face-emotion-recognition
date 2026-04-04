@@ -10,7 +10,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import FileResponse
 
 from app.models import PredictionResponse, EmotionResult, HealthResponse
-from app.services.emotion_detector import detector
+from app.services.transformers_detector import transformers_detector
 from app.services.tts_service import tts_service
 
 logger = logging.getLogger(__name__)
@@ -23,11 +23,11 @@ async def health_check():
     """Check if the API and model are ready."""
     return HealthResponse(
         status="ok",
-        model_loaded=detector.is_model_loaded,
+        model_loaded=transformers_detector.is_model_loaded,
         message=(
-            "Model is loaded and ready."
-            if detector.is_model_loaded
-            else "Running in DEMO mode. Place your .keras model in backend/model/ folder."
+            "Hugging Face model is loaded and ready."
+            if transformers_detector.is_model_loaded
+            else "Model not loaded. Run 'python download_hf_model.py' first."
         ),
     )
 
@@ -35,7 +35,7 @@ async def health_check():
 @router.post("/detect", response_model=PredictionResponse)
 async def detect_emotion(file: UploadFile = File(...)):
     """
-    Detect emotion from an uploaded image.
+    Detect emotion from an uploaded image using transformers model.
 
     Accepts an image file (or base64 webcam frame), detects the face,
     and returns the predicted emotion with a descriptive message.
@@ -51,8 +51,8 @@ async def detect_emotion(file: UploadFile = File(...)):
         if image is None:
             raise HTTPException(status_code=400, detail="Invalid image data")
 
-        # Run prediction
-        result = detector.predict(image)
+        # Run prediction with transformers model
+        result = transformers_detector.predict(image)
 
         if not result["success"]:
             return PredictionResponse(
@@ -84,7 +84,7 @@ async def detect_emotion(file: UploadFile = File(...)):
 @router.post("/detect-base64", response_model=PredictionResponse)
 async def detect_emotion_base64(data: dict):
     """
-    Detect emotion from a base64-encoded image (from webcam capture).
+    Detect emotion from a base64-encoded image (from webcam capture) using transformers model.
 
     Expects: {"image": "data:image/jpeg;base64,..."}
     """
@@ -103,8 +103,8 @@ async def detect_emotion_base64(data: dict):
         if image is None:
             raise HTTPException(status_code=400, detail="Invalid image data")
 
-        # Run prediction
-        result = detector.predict(image)
+        # Run prediction with transformers model
+        result = transformers_detector.predict(image)
 
         if not result["success"]:
             return PredictionResponse(

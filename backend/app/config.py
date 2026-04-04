@@ -17,6 +17,8 @@ MODEL_PATH = os.path.join(BASE_DIR, "model", "final_stage4_highacc (2).keras")
 
 # Input image size expected by your model (height, width)
 # Change this to match what your model was trained on
+# Note: The model architecture uses 224x224, but error logs show 225x225
+# If you see shape mismatch errors, try adjusting this
 IMAGE_SIZE = (224, 224)
 
 # Whether model expects grayscale (1 channel) or RGB (3 channels)
