@@ -5,6 +5,8 @@ __pycache__/
 *.pyc
 *.log
 .env
+.env.local
+.env.production.local
 audio_cache/*.mp3
 !audio_cache/.gitkeep
 
