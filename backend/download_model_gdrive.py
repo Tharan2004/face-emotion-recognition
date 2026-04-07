@@ -34,8 +34,9 @@ def download_model():
         print("   export GDRIVE_MODEL_ID=YOUR_FILE_ID")
         sys.exit(1)
     
-    # Create model directory
-    MODEL_DIR = Path("model/final_stage4_emotion_model")
+    # Create model directory - use absolute path from script location
+    script_dir = Path(__file__).parent
+    MODEL_DIR = script_dir / "model" / "final_stage4_emotion_model"
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
     
     model_file = MODEL_DIR / "final_model.safetensors"

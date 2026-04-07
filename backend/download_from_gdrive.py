@@ -45,7 +45,9 @@ def download_model_from_gdrive(gdrive_file_id):
     Args:
         gdrive_file_id: The Google Drive file ID (from the shareable link)
     """
-    MODEL_DIR = Path("model/final_stage4_emotion_model")
+    # Use absolute path from script location
+    script_dir = Path(__file__).parent
+    MODEL_DIR = script_dir / "model" / "final_stage4_emotion_model"
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
     
     # Download the model file
