@@ -29,10 +29,14 @@ cd face-emotion-recognition/backend
 pip install -r requirements.txt
 
 # Download the emotion detection model (one-time setup, ~330MB)
+# Option A: From Hugging Face (slower, 5-10 minutes)
 python save_model_locally.py
+
+# Option B: From Google Drive (faster, 2-3 minutes)
+python download_model_gdrive.py YOUR_GOOGLE_DRIVE_FILE_ID
 ```
 
-This will download the model from Hugging Face and save it locally in `backend/model/final_stage4_emotion_model/`
+See [backend/GDRIVE_SETUP.md](backend/GDRIVE_SETUP.md) for detailed Google Drive setup instructions.
 
 ### 2. Start Backend Server
 
