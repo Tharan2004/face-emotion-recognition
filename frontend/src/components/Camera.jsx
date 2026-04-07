@@ -3,7 +3,7 @@ import Webcam from "react-webcam";
 import { FaCamera, FaStop, FaVideoSlash } from "react-icons/fa";
 import "./Camera.css";
 
-const Camera = ({ isActive, onToggle, onCapture, captureInterval = 50000 }) => {
+const Camera = ({ isActive, onToggle, onCapture, captureInterval = 5000 }) => {
   const webcamRef = useRef(null);
   const intervalRef = useRef(null);
   const [hasPermission, setHasPermission] = useState(null);

@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: face-emotion-backend
+    runtime: python
+    buildCommand: pip install -r backend/requirements.txt && python backend/save_model_locally.py
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: HOST
+        value: 0.0.0.0
+    healthCheckPath: /

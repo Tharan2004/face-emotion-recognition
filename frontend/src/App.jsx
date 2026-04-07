@@ -18,8 +18,11 @@ function App() {
   const [history, setHistory] = useState([]);
   const [error, setError] = useState(null);
   const [noFaceCount, setNoFaceCount] = useState(0);
-  const [countdown, setCountdown] = useState(50); // Countdown timer
-  const [detectionInterval, setDetectionInterval] = useState(50); // Configurable interval in seconds
+  const [countdown, setCountdown] = useState(5); // Countdown timer
+  const [detectionInterval, setDetectionInterval] = useState(5); // Configurable interval in seconds (default 5 for real-time)
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [lastEmotion, setLastEmotion] = useState(null);
+  const [faceDetected, setFaceDetected] = useState(false);
 
   // Check backend health on mount
   useEffect(() => {
@@ -29,15 +32,151 @@ function App() {
         setModelLoaded(health.model_loaded);
         if (!health.model_loaded) {
           setError(health.message);
+        } else {
+          // Announce app ready
+          speakMessage("Face emotion recognition app is ready. Say 'start detection' to begin.");
         }
       } catch (err) {
         setError(
           "Cannot connect to backend server. Please start the FastAPI server on port 8000."
         );
+        speakMessage("Cannot connect to server. Please check backend connection.");
       }
     };
     init();
   }, []);
+
+  // Helper function to speak messages
+  const speakMessage = useCallback((text) => {
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.95;
+      utterance.pitch = 1;
+      utterance.volume = 1;
+      window.speechSynthesis.speak(utterance);
+    }
+  }, []);
+
+  // Voice Commands Setup
+  useEffect(() => {
+    if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
+      console.log("Speech recognition not supported");
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
+
+    recognition.onresult = (event) => {
+      const last = event.results.length - 1;
+      const command = event.results[last][0].transcript.toLowerCase().trim();
+      console.log("Voice command:", command);
+
+      // Process commands
+      if (command.includes("start detection") || command.includes("start")) {
+        setIsActive(true);
+        speakMessage("Detection started");
+      } else if (command.includes("stop detection") || command.includes("stop")) {
+        setIsActive(false);
+        speakMessage("Detection stopped");
+      } else if (command.includes("repeat") || command.includes("say again")) {
+        if (currentMessage) {
+          speakMessage(currentMessage);
+        }
+      } else if (command.includes("what emotion") || command.includes("current emotion")) {
+        if (emotionResult) {
+          speakMessage(`The person appears ${emotionResult.emotion}`);
+        } else {
+          speakMessage("No emotion detected yet");
+        }
+      } else if (command.includes("help")) {
+        speakMessage("You can say: start detection, stop detection, repeat, or what emotion");
+      }
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+    };
+
+    if (voiceEnabled) {
+      recognition.start();
+      speakMessage("Voice commands enabled. Say 'start detection' to begin.");
+    }
+
+    return () => {
+      if (voiceEnabled) {
+        recognition.stop();
+      }
+    };
+  }, [voiceEnabled, currentMessage, emotionResult, speakMessage]);
+
+  // Gesture Controls - Shake to toggle detection
+  useEffect(() => {
+    let lastX = 0, lastY = 0, lastZ = 0;
+    let shakeThreshold = 15;
+
+    const handleMotion = (event) => {
+      const { x, y, z } = event.accelerationIncludingGravity || {};
+      if (!x || !y || !z) return;
+
+      const deltaX = Math.abs(x - lastX);
+      const deltaY = Math.abs(y - lastY);
+      const deltaZ = Math.abs(z - lastZ);
+
+      if (deltaX > shakeThreshold || deltaY > shakeThreshold || deltaZ > shakeThreshold) {
+        setIsActive(prev => {
+          const newState = !prev;
+          speakMessage(newState ? "Detection started" : "Detection stopped");
+          return newState;
+        });
+      }
+
+      lastX = x;
+      lastY = y;
+      lastZ = z;
+    };
+
+    if (window.DeviceMotionEvent) {
+      window.addEventListener("devicemotion", handleMotion);
+    }
+
+    return () => {
+      if (window.DeviceMotionEvent) {
+        window.removeEventListener("devicemotion", handleMotion);
+      }
+    };
+  }, [speakMessage]);
+
+  // Double-tap to repeat emotion
+  useEffect(() => {
+    let lastTap = 0;
+    
+    const handleDoubleTap = (e) => {
+      const currentTime = new Date().getTime();
+      const tapLength = currentTime - lastTap;
+      
+      if (tapLength < 300 && tapLength > 0) {
+        // Double tap detected
+        if (currentMessage) {
+          speakMessage(currentMessage);
+        } else {
+          speakMessage("No emotion detected yet");
+        }
+      }
+      
+      lastTap = currentTime;
+    };
+
+    document.addEventListener('touchend', handleDoubleTap);
+    
+    return () => {
+      document.removeEventListener('touchend', handleDoubleTap);
+    };
+  }, [currentMessage, speakMessage]);
 
   // Keyboard shortcut: Space to toggle detection
   useEffect(() => {
@@ -75,7 +214,7 @@ function App() {
     };
   }, [isActive, detectionInterval]); // Depend on detectionInterval
 
-  // Handle webcam frame capture
+  // Handle webcam frame capture with real-time emotion change detection
   const handleCapture = useCallback(
     async (imageBase64) => {
       if (isProcessing) return;
@@ -90,6 +229,21 @@ function App() {
         if (response.success) {
           if (response.face_detected && response.result) {
             console.log('✅ Emotion detected:', response.result.emotion);
+            
+            // Check if face was just detected
+            if (!faceDetected) {
+              setFaceDetected(true);
+              speakMessage("Face detected");
+            }
+
+            // Check for emotion change (real-time feedback)
+            if (lastEmotion && lastEmotion !== response.result.emotion) {
+              const changeMessage = `Emotion changed to ${response.result.emotion}`;
+              speakMessage(changeMessage);
+              console.log('🔄 Emotion changed:', lastEmotion, '->', response.result.emotion);
+            }
+
+            setLastEmotion(response.result.emotion);
             setEmotionResult(response.result);
             setAllEmotions(response.all_emotions);
             setCurrentMessage(response.result.message);
@@ -105,6 +259,12 @@ function App() {
               return [newEntry, ...prev].slice(0, 10);
             });
           } else {
+            // Face lost
+            if (faceDetected) {
+              setFaceDetected(false);
+              speakMessage("Face lost. Please face the camera.");
+            }
+
             setNoFaceCount((prev) => {
               const next = prev + 1;
               // Only update message after 3 consecutive no-face frames
@@ -118,6 +278,7 @@ function App() {
           }
         } else {
           setError(response.error || "Detection failed");
+          speakMessage("Detection failed");
         }
       } catch (err) {
         console.error("Detection error:", err);
@@ -125,19 +286,26 @@ function App() {
         if (err.code === "ERR_NETWORK") {
           setError("Lost connection to server.");
           setIsActive(false);
+          speakMessage("Lost connection to server. Detection stopped.");
         }
       } finally {
         setIsProcessing(false);
       }
     },
-    [isProcessing]
+    [isProcessing, faceDetected, lastEmotion, speakMessage]
   );
 
   const toggleDetection = () => {
-    setIsActive((prev) => !prev);
+    setIsActive((prev) => {
+      const newState = !prev;
+      speakMessage(newState ? "Detection started" : "Detection stopped");
+      return newState;
+    });
     if (isActive) {
       // Stopping
       setIsProcessing(false);
+      setFaceDetected(false);
+      setLastEmotion(null);
     }
   };
 
@@ -145,10 +313,15 @@ function App() {
     const value = parseInt(e.target.value);
     if (value >= 5 && value <= 300) { // Between 5 and 300 seconds
       setDetectionInterval(value);
+      speakMessage(`Detection interval set to ${value} seconds`);
       if (!isActive) {
         setCountdown(value);
       }
     }
+  };
+
+  const toggleVoiceCommands = () => {
+    setVoiceEnabled(prev => !prev);
   };
 
   return (
@@ -165,6 +338,90 @@ function App() {
             </button>
           </div>
         )}
+
+        {/* Accessibility Controls */}
+        <div className="accessibility-controls" style={{
+          background: 'var(--bg-card)',
+          border: '2px solid var(--border)',
+          borderRadius: '12px',
+          padding: '24px',
+          marginBottom: '24px',
+          boxShadow: 'var(--shadow)'
+        }}>
+          <h2 style={{ 
+            margin: '0 0 20px 0', 
+            fontSize: '20px',
+            color: 'var(--text-primary)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}>
+            ♿ Accessibility Features
+          </h2>
+          
+          <div style={{ display: 'grid', gap: '16px' }}>
+            {/* Voice Commands */}
+            <button
+              onClick={toggleVoiceCommands}
+              style={{
+                padding: '20px',
+                fontSize: '18px',
+                fontWeight: 'bold',
+                background: voiceEnabled ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'var(--bg-primary)',
+                color: voiceEnabled ? 'white' : 'var(--text-primary)',
+                border: '2px solid var(--border)',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '12px'
+              }}
+              aria-label={voiceEnabled ? "Disable voice commands" : "Enable voice commands"}
+              aria-pressed={voiceEnabled}
+            >
+              🎤 Voice Commands: {voiceEnabled ? 'ON' : 'OFF'}
+            </button>
+
+            {voiceEnabled && (
+              <div style={{
+                padding: '16px',
+                background: 'rgba(16, 185, 129, 0.1)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                borderRadius: '8px',
+                fontSize: '14px',
+                color: 'var(--text-secondary)'
+              }}>
+                <p style={{ margin: '0 0 8px 0', fontWeight: 'bold' }}>Say these commands:</p>
+                <ul style={{ margin: 0, paddingLeft: '20px' }}>
+                  <li>"Start detection" - Begin scanning</li>
+                  <li>"Stop detection" - Stop scanning</li>
+                  <li>"Repeat" - Hear last emotion again</li>
+                  <li>"What emotion" - Current emotion</li>
+                  <li>"Help" - List commands</li>
+                </ul>
+              </div>
+            )}
+
+            {/* Quick Actions */}
+            <div style={{
+              padding: '16px',
+              background: 'rgba(99, 102, 241, 0.1)',
+              border: '1px solid rgba(99, 102, 241, 0.3)',
+              borderRadius: '8px'
+            }}>
+              <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', fontSize: '14px' }}>
+                📱 Quick Actions:
+              </p>
+              <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '14px', color: 'var(--text-secondary)' }}>
+                <li>Press <strong>Space</strong> to start/stop</li>
+                <li><strong>Shake phone</strong> to toggle detection</li>
+                <li><strong>Double-tap screen</strong> to repeat emotion</li>
+              </ul>
+            </div>
+          </div>
+        </div>
 
         <div className="content-grid">
           {/* Left: Camera */}
@@ -353,24 +610,49 @@ function App() {
 
         {/* Accessibility instructions */}
         <section className="instructions" aria-label="Usage instructions">
-          <h2>How to Use</h2>
+          <h2>How to Use (Designed for Visually Impaired)</h2>
           <div className="instructions-grid">
             <div className="instruction-step">
               <div className="step-number">1</div>
-              <p>Point the camera at the person speaking to you</p>
+              <p><strong>Enable Voice Commands</strong> - Control the app hands-free by speaking</p>
             </div>
             <div className="instruction-step">
               <div className="step-number">2</div>
-              <p>Press <strong>Start Detection</strong> or hit <kbd>Space</kbd></p>
+              <p><strong>Say "Start Detection"</strong> or press Space or shake your phone</p>
             </div>
             <div className="instruction-step">
               <div className="step-number">3</div>
-              <p>The system will detect their emotion and speak it to you</p>
+              <p><strong>Point camera at person</strong> - You'll hear when face is detected</p>
             </div>
             <div className="instruction-step">
               <div className="step-number">4</div>
-              <p>Auto-Speak is ON by default for hands-free use</p>
+              <p><strong>Listen for emotions</strong> - App announces emotion changes immediately</p>
             </div>
+            <div className="instruction-step">
+              <div className="step-number">5</div>
+              <p><strong>Double-tap screen</strong> to repeat the last emotion anytime</p>
+            </div>
+            <div className="instruction-step">
+              <div className="step-number">6</div>
+              <p><strong>Say "Stop"</strong> or press Space or shake phone to stop</p>
+            </div>
+          </div>
+          
+          <div style={{
+            marginTop: '24px',
+            padding: '20px',
+            background: 'rgba(59, 130, 246, 0.1)',
+            border: '2px solid rgba(59, 130, 246, 0.3)',
+            borderRadius: '12px'
+          }}>
+            <h3 style={{ margin: '0 0 12px 0', fontSize: '18px' }}>🎯 Key Features for Accessibility:</h3>
+            <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '16px', lineHeight: '1.8' }}>
+              <li><strong>Real-time feedback</strong> - Hear emotion changes instantly</li>
+              <li><strong>Voice control</strong> - No need to touch the screen</li>
+              <li><strong>Audio announcements</strong> - Face detection, status updates</li>
+              <li><strong>Gesture support</strong> - Shake phone or double-tap</li>
+              <li><strong>Hands-free operation</strong> - Perfect for visually impaired users</li>
+            </ul>
           </div>
         </section>
       </main>
