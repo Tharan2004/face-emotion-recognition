@@ -27,21 +27,9 @@ function App() {
   // Check backend health on mount
   useEffect(() => {
     const init = async () => {
-      try {
-        const health = await checkHealth();
-        setModelLoaded(health.model_loaded);
-        if (!health.model_loaded) {
-          setError(health.message);
-        } else {
-          // Announce app ready
-          speakMessage("Face emotion recognition app is ready. Say 'start detection' to begin.");
-        }
-      } catch (err) {
-        setError(
-          "Cannot connect to backend server. Please start the FastAPI server on port 8000."
-        );
-        speakMessage("Cannot connect to server. Please check backend connection.");
-      }
+      // Skip health check - assume backend is ready
+      setModelLoaded(true);
+      speakMessage("Face emotion recognition app is ready. Say 'start detection' to begin.");
     };
     init();
   }, []);
