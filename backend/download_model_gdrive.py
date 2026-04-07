@@ -39,7 +39,7 @@ def download_model():
     MODEL_DIR = script_dir / "model" / "final_stage4_emotion_model"
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
     
-    model_file = MODEL_DIR / "final_model.safetensors"
+    model_file = MODEL_DIR / "model.safetensors"
     
     # Check if model already exists
     if model_file.exists():

@@ -13,7 +13,7 @@ audio_cache/*.mp3
 # Model files (too large for git)
 backend/model/final_stage4_emotion_model/*.safetensors
 backend/model/final_stage4_emotion_model/*.keras
-backend/model/final_stage4_emotion_model/final_model.safetensors
+backend/model/final_stage4_emotion_model/model.safetensors
 model/
 *.safetensors
 *.keras

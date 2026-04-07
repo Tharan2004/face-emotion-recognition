@@ -51,7 +51,7 @@ def download_model_from_gdrive(gdrive_file_id):
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
     
     # Download the model file
-    model_file = MODEL_DIR / "final_model.safetensors"
+    model_file = MODEL_DIR / "model.safetensors"
     
     print("📥 Downloading model from Google Drive...")
     print(f"File ID: {gdrive_file_id}")
