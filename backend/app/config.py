@@ -54,5 +54,5 @@ os.makedirs(AUDIO_DIR, exist_ok=True)
 FACE_CASCADE_PATH = None  # Will use default haarcascade if None
 
 # Server settings
-HOST = "0.0.0.0"
-PORT = 8000
+HOST = os.getenv("HOST", "0.0.0.0")
+PORT = int(os.getenv("PORT", 8000))
